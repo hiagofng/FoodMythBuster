@@ -1,0 +1,8 @@
+default_environment: default
+
+environments:
+  default:
+    connections:
+      - name: duckdb-default
+        type: duckdb
+        path: "data/foodmythbuster.duckdb"
