@@ -3,11 +3,16 @@ default_environment: default
 environments:
   default:
     connections:
+      # Local dev — used by stg_products_duckdb.sql
       duckdb:
         - name: "duckdb_default"
           path: "data/foodmythbuster.duckdb"
+
+      # Cloud — used by stg_products.sql (definitive)
+      # ADC requires the explicit flag below. If your org allows service
+      # account keys, swap for: service_account_file: path/to/key.json
       google_cloud_platform:
         - name: "gcp-default"
-          project_id: "labellie-de-project"
+          project_id: "YOUR_GCP_PROJECT_ID"
           location: "southamerica-east1"
           use_application_default_credentials: true

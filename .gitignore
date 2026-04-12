@@ -94,3 +94,26 @@ cython_debug/
 # --- OS ---
 .DS_Store
 Thumbs.db
+
+.bruin.yml
+logs/runs
+logs/*.log
+*.py[cod]
+
+# --- Terraform ---
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/terraform.tfvars
+infra/tfplan
+infra/crash.log
+
+# --- dbt ---
+dbt/**/target/
+dbt/**/dbt_packages/
+dbt/**/logs/
+dbt/**/.user.yml
+
+# --- Secrets ---
+.secrets/

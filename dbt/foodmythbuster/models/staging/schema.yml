@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: stg_products
+    description: >
+      Cleaned Brazilian OFF products with derived health-claim and NOVA
+      flags. One row per product. Partitioned on `created_date` and
+      clustered on (is_deceptive, nutriscore_grade, is_ultra_processed) to
+      match the dashboard's access pattern.
+    columns:
+      - name: product_id
+        description: "OFF product barcode (GS1 prefix 789/790)."
+        tests:
+          - not_null
+          - unique
+
+      - name: nova_group
+        description: "NOVA processing classification (1=unprocessed, 4=ultra-processed)."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4]
+                quote: false
+
+      - name: product_name
+        description: "Product display name."
+        tests:
+          - not_null
+
+      - name: nutriscore_grade
+        description: "Nutri-Score A–E, lowercased. Nullable — not every product is graded."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['a', 'b', 'c', 'd', 'e']
+
+      - name: is_ultra_processed
+        description: "TRUE when nova_group = 4."
+        tests:
+          - not_null
+
+      - name: has_health_claim
+        description: "TRUE when at least one front-of-pack health claim is present."
+        tests:
+          - not_null
+
+      - name: is_deceptive
+        description: "TRUE when the product carries a health claim AND is NOVA 4."
+        tests:
+          - not_null

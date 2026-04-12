@@ -1,2 +1,12 @@
+dlt[duckdb,bigquery,filesystem]>=1.0.0
 duckdb>=0.10.0
 requests>=2.31.0
+streamlit>=1.30.0
+plotly>=5.18.0
+pandas>=2.0.0
+pyarrow>=15.0.0
+google-cloud-bigquery>=3.20.0
+google-cloud-bigquery-storage>=2.24.0
+gcsfs>=2024.2.0
+db-dtypes>=1.2.0
+dbt-bigquery>=1.7.0
