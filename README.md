@@ -83,7 +83,13 @@ Cloud run, one shot:
 
 ```bash
 git clone https://github.com/hiagofng/FoodMythBuster.git && cd FoodMythBuster
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+# Create + activate a virtualenv
+python -m venv .venv
+source .venv/bin/activate          # macOS / Linux
+# .venv\Scripts\activate           # Windows (cmd / PowerShell)
+# source .venv/Scripts/activate    # Windows (Git Bash)
+
 pip install -r requirements.txt
 
 cp .env.example .env                                # fill in your GCP values
