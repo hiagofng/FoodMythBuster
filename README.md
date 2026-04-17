@@ -82,7 +82,7 @@ The six tiles cover the Nutri-Score paradox, green-label lies, healthy-junk by c
 Cloud run, one shot:
 
 ```bash
-git clone https://github.com/<your-fork>/FoodMythBuster.git && cd FoodMythBuster
+git clone https://github.com/hiagofng/FoodMythBuster.git && cd FoodMythBuster
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
