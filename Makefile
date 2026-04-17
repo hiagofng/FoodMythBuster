@@ -17,7 +17,7 @@ PIPELINE_DIR := pipelines/foodmythbuster
 
 help:
 	@echo "FoodMythBuster targets:"
-	@echo "  install         pip install -r requirements.txt"
+	@echo "  install         uv pip install -r requirements.txt"
 	@echo "  infra           terraform apply (GCS + BigQuery + SA + IAM)"
 	@echo "  infra-destroy   terraform destroy"
 	@echo "  ingest          dlt: Open Food Facts -> raw table"
@@ -30,7 +30,7 @@ help:
 	@echo "  clean           remove dbt target/ and logs/"
 
 install:
-	pip install -r requirements.txt
+	uv pip install -r requirements.txt
 
 infra:
 	cd $(INFRA_DIR) && terraform init && terraform apply -auto-approve

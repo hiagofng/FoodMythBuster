@@ -84,13 +84,14 @@ Cloud run, one shot:
 ```bash
 git clone https://github.com/hiagofng/FoodMythBuster.git && cd FoodMythBuster
 
-# Create + activate a virtualenv
-python -m venv .venv
+# Create + activate a virtualenv (uv is ~10-100x faster than pip; see Prerequisites)
+uv venv
 source .venv/bin/activate          # macOS / Linux
 # .venv\Scripts\activate           # Windows (cmd / PowerShell)
 # source .venv/Scripts/activate    # Windows (Git Bash)
 
-pip install -r requirements.txt
+uv pip install -r requirements.txt
+# Fallback without uv: python -m venv .venv && pip install -r requirements.txt
 
 cp .env.example .env                                # fill in your GCP values
 cp infra/terraform.tfvars.example infra/terraform.tfvars
@@ -119,6 +120,7 @@ make dev
 | Tool | Version | Install |
 |---|---|---|
 | Python | 3.11+ | https://www.python.org/downloads/ |
+| [uv](https://docs.astral.sh/uv/) (Python installer) | latest | Windows: `winget install astral-sh.uv` · macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh \| sh`. Falls back to `pip` if you skip it. |
 | [Bruin CLI](https://getbruin.com) | latest | `curl -LsSf https://raw.githubusercontent.com/bruin-data/bruin/refs/heads/main/install.sh \| sh` |
 | [dbt](https://www.getdbt.com) + dbt-bigquery | ≥ 1.7 | `pip install dbt-bigquery` (bundled in `requirements.txt`) |
 | [Terraform](https://developer.hashicorp.com/terraform) | ≥ 1.5 | https://developer.hashicorp.com/terraform/install |
@@ -127,7 +129,7 @@ make dev
 
 A **GCP project with billing enabled** is required for the cloud path. `make dev` needs none of the cloud tooling.
 
-> **Note on Python vs system tools.** The table above is one-time system-level setup. Every **Python** dependency (dlt, dbt-bigquery, streamlit, plotly, the `google-cloud-*` client libraries, pyarrow, gcsfs, db-dtypes, etc.) is pinned in `requirements.txt` and installed in one shot via `pip install -r requirements.txt` (or `make install`). No Python package is assumed pre-installed.
+> **Note on Python vs system tools.** The table above is one-time system-level setup. Every **Python** dependency (dlt, dbt-bigquery, streamlit, plotly, the `google-cloud-*` client libraries, pyarrow, gcsfs, db-dtypes, etc.) is pinned in `requirements.txt` and installed in one shot via `uv pip install -r requirements.txt` (or `make install`). Plain `pip install -r requirements.txt` works identically if you skipped uv. No Python package is assumed pre-installed.
 
 ---
 
