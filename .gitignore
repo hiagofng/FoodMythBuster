@@ -1,6 +1,7 @@
 # --- project-specific ---
 data/
 .env
+!.env.example
 .envrc
 
 # --- Python ---
@@ -99,13 +100,13 @@ Thumbs.db
 logs/
 
 # --- Terraform ---
-infra/.terraform/
-infra/.terraform.lock.hcl
-infra/*.tfstate
-infra/*.tfstate.backup
-infra/terraform.tfvars
-infra/tfplan
-infra/crash.log
+**/.terraform/
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+**/terraform.tfvars
+**/tfplan
+**/crash.log
 
 # --- dbt ---
 dbt/**/target/
