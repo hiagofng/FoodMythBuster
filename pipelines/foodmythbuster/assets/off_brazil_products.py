@@ -118,25 +118,14 @@ def off_brazil_products(
     log.info("Yielded %d new/updated products", total)
 
 
-def _configure_bq_env():
-    """Inject dlt BigQuery/filesystem config from user-facing env vars.
-
-    Uses Application Default Credentials — set up via
-    `gcloud auth application-default login`.
-    """
-    os.environ["DESTINATION__BIGQUERY__CREDENTIALS__PROJECT_ID"] = os.environ["GCP_PROJECT_ID"]
-    os.environ.setdefault(
-        "DESTINATION__BIGQUERY__LOCATION",
-        os.getenv("GCP_REGION", "southamerica-east1"),
-    )
-    os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] = f"gs://{os.environ['GCS_BUCKET']}"
-
-
 def _build_pipeline():
-    # Backend-specific pipeline names so the incremental cursor in
-    # ~/.dlt/pipelines/<name>/ doesn't leak across targets when switching.
     if TARGET == "bigquery":
-        _configure_bq_env()
+        os.environ["DESTINATION__BIGQUERY__CREDENTIALS__PROJECT_ID"] = os.environ["GCP_PROJECT_ID"]
+        os.environ.setdefault(
+            "DESTINATION__BIGQUERY__LOCATION",
+            os.getenv("GCP_REGION", "southamerica-east1"),
+        )
+        os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] = f"gs://{os.environ['GCS_BUCKET']}"
         return dlt.pipeline(
             pipeline_name="foodmythbuster_bq",
             destination="bigquery",
