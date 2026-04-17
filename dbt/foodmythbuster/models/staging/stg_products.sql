@@ -49,13 +49,9 @@ base AS (
         DATE(TIMESTAMP_SECONDS(created_t))                  AS created_date,
         EXTRACT(YEAR FROM TIMESTAMP_SECONDS(created_t))     AS created_year,
         ARRAY(
-            SELECT x FROM UNNEST(labels_tags) AS x
-            WHERE x IN UNNEST([
-                'en:organic', 'en:bio', 'en:natural', 'en:light',
-                'en:fit', 'en:no-sugar', 'en:zero-sugar', 'en:low-fat',
-                'en:low-calories', 'en:high-protein', 'en:vegan',
-                'en:vegetarian', 'en:gluten-free', 'en:no-preservatives'
-            ])
+            SELECT c.claim_tag
+            FROM {{ ref('health_claims') }} c
+            WHERE c.claim_tag IN UNNEST(labels_tags)
         )                                                   AS matched_health_claims,
         nova_group = 4                                      AS is_ultra_processed,
         LOWER(nutriscore_grade) = 'a' AND nova_group = 4              AS is_nutriscore_a_but_nova4

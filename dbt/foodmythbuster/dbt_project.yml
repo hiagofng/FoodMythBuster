@@ -5,6 +5,7 @@ config-version: 2
 profile: 'foodmythbuster'
 
 model-paths: ["models"]
+seed-paths: ["seeds"]
 
 clean-targets:
   - "target"
@@ -14,3 +15,12 @@ models:
   foodmythbuster:
     staging:
       +materialized: table
+    marts:
+      +materialized: table
+
+seeds:
+  foodmythbuster:
+    health_claims:
+      +column_types:
+        claim_tag: STRING
+        claim_family: STRING

@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: mart_deceptive_by_category
+    description: >
+      One row per OFF category tag with the share of deceptive products
+      (health claim + NOVA 4). Powers the dashboard's "healthy junk by
+      category" tile with a pre-aggregated scan. Categories with fewer
+      than 5 health-claim products are filtered to suppress long-tail
+      noise.
+    columns:
+      - name: category_tag
+        description: "OFF category tag (e.g. en:breakfast-cereals)."
+        tests:
+          - not_null
+          - unique
+
+      - name: products_with_claim
+        description: "Count of products in this category carrying at least one front-of-pack health claim."
+        tests:
+          - not_null
+
+      - name: deceptive_products
+        description: "Count of products that carry a health claim AND are NOVA 4."
+        tests:
+          - not_null
+
+      - name: deceptive_share
+        description: "deceptive_products / products_with_claim. Between 0 and 1."
+        tests:
+          - not_null
