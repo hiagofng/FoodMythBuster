@@ -48,7 +48,8 @@ test:
 	cd $(DBT_DIR) && DBT_PROFILES_DIR=. dbt test
 
 build:
-	bruin run $(PIPELINE_DIR)
+	bruin run $(PIPELINE_DIR)/assets/off_brazil_products.py
+	bruin run $(PIPELINE_DIR)/assets/dbt_build.py
 
 dashboard:
 	streamlit run dashboard/app.py
@@ -57,7 +58,7 @@ all: infra build dashboard
 
 dev:
 	FOODMYTHBUSTER_TARGET=duckdb bruin run $(PIPELINE_DIR)/assets/off_brazil_products.py
-	FOODMYTHBUSTER_TARGET=duckdb bruin run $(PIPELINE_DIR)/assets/stg_products_duckdb.sql
+	FOODMYTHBUSTER_TARGET=duckdb bruin run $(PIPELINE_DIR)/assets/dbt_build.py
 	FOODMYTHBUSTER_BACKEND=duckdb streamlit run dashboard/app.py
 
 clean:

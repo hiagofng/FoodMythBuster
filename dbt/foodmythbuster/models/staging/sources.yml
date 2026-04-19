@@ -3,6 +3,7 @@ version: 2
 sources:
   - name: foodmythbuster
     description: "Raw ingestion dataset populated by dlt."
+    schema: "{{ 'raw' if target.type == 'duckdb' else 'foodmythbuster' }}"
     tables:
       - name: off_brazil_products
         description: "Brazilian products from Open Food Facts (GS1 prefixes 789/790), NOVA-classified."

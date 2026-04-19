@@ -1,12 +1,9 @@
+{%- set is_bq = target.type == 'bigquery' -%}
 {{
   config(
     materialized='table',
-    partition_by={
-      'field': 'created_date',
-      'data_type': 'date',
-      'granularity': 'day'
-    },
-    cluster_by=['is_deceptive', 'nutriscore_grade', 'is_ultra_processed']
+    partition_by={'field': 'created_date', 'data_type': 'date', 'granularity': 'day'} if is_bq else none,
+    cluster_by=['is_deceptive', 'nutriscore_grade', 'is_ultra_processed'] if is_bq else none
   )
 }}
 
@@ -17,10 +14,10 @@
 
 WITH parsed AS (
     SELECT
-        * EXCEPT(labels_tags, categories_tags, additives_tags),
-        JSON_EXTRACT_STRING_ARRAY(labels_tags)     AS labels_tags,
-        JSON_EXTRACT_STRING_ARRAY(categories_tags) AS categories_tags,
-        JSON_EXTRACT_STRING_ARRAY(additives_tags)  AS additives_tags
+        * {{ except_columns('labels_tags, categories_tags, additives_tags') }},
+        {{ parse_json_array('labels_tags') }}     AS labels_tags,
+        {{ parse_json_array('categories_tags') }} AS categories_tags,
+        {{ parse_json_array('additives_tags') }}  AS additives_tags
     FROM {{ source('foodmythbuster', 'off_brazil_products') }}
 ),
 
@@ -45,14 +42,10 @@ base AS (
         ARRAY_LENGTH(additives_tags)                        AS additives_count,
         ingredients_text,
         ingredients_n,
-        TIMESTAMP_SECONDS(created_t)                        AS created_at,
-        DATE(TIMESTAMP_SECONDS(created_t))                  AS created_date,
-        EXTRACT(YEAR FROM TIMESTAMP_SECONDS(created_t))     AS created_year,
-        ARRAY(
-            SELECT c.claim_tag
-            FROM {{ ref('health_claims') }} c
-            WHERE c.claim_tag IN UNNEST(labels_tags)
-        )                                                   AS matched_health_claims,
+        {{ epoch_to_timestamp('created_t') }}                        AS created_at,
+        {{ date_of(epoch_to_timestamp('created_t')) }}                  AS created_date,
+        EXTRACT(YEAR FROM {{ epoch_to_timestamp('created_t') }})     AS created_year,
+        {{ match_health_claims('labels_tags') }}            AS matched_health_claims,
         nova_group = 4                                      AS is_ultra_processed,
         LOWER(nutriscore_grade) = 'a' AND nova_group = 4              AS is_nutriscore_a_but_nova4
     FROM parsed

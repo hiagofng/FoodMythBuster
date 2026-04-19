@@ -1,7 +1,8 @@
+{%- set is_bq = target.type == 'bigquery' -%}
 {{
   config(
     materialized='table',
-    cluster_by=['category_tag']
+    cluster_by=['category_tag'] if is_bq else none
   )
 }}
 
@@ -18,15 +19,15 @@ WITH exploded AS (
         is_deceptive,
         has_health_claim
     FROM {{ ref('stg_products') }},
-         UNNEST(categories_tags) AS category_tag
+         {{ cross_join_unnest('categories_tags', 'category_tag') }}
     WHERE has_health_claim
 )
 
 SELECT
     category_tag,
     COUNT(*)                                      AS products_with_claim,
-    COUNTIF(is_deceptive)                         AS deceptive_products,
-    SAFE_DIVIDE(COUNTIF(is_deceptive), COUNT(*))  AS deceptive_share
+    {{ countif('is_deceptive') }}                 AS deceptive_products,
+    {{ safe_divide(countif('is_deceptive'), 'COUNT(*)') }}  AS deceptive_share
 FROM exploded
 GROUP BY category_tag
 HAVING products_with_claim >= 5

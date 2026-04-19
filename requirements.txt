@@ -10,3 +10,4 @@ google-cloud-bigquery-storage>=2.24.0
 gcsfs>=2024.2.0
 db-dtypes>=1.2.0
 dbt-bigquery>=1.7.0
+dbt-duckdb>=1.7.0

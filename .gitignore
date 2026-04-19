@@ -116,3 +116,6 @@ dbt/**/.user.yml
 
 # --- Secrets ---
 .secrets/
+logs/runs
+logs/*.log
+*.py[cod]
