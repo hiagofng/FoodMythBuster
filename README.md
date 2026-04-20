@@ -142,8 +142,7 @@ A **GCP project with billing enabled** is required for the cloud path. `make dev
 │   ├── pipeline.yml
 │   └── assets/
 │       ├── off_brazil_products.py      # dlt ingest (DuckDB or BigQuery)
-│       ├── stg_products_duckdb.sql     # staging (DuckDB dev fallback)
-│       └── dbt_build.py                # dbt build wrapper (BigQuery DAG node 2)
+│       └── dbt_build.py                # dbt build wrapper (picks target from FOODMYTHBUSTER_TARGET)
 ├── dbt/foodmythbuster/
 │   ├── dbt_project.yml
 │   ├── profiles.yml
@@ -246,8 +245,6 @@ Data lands in `data/foodmythbuster.duckdb` (schemas `raw` and `staging`) and the
 > - `foodmythbuster_staging.*` — dlt's temporary merge-staging dataset; not a transformation layer
 >
 > Ingestion uses backend-specific pipeline names (`foodmythbuster_duckdb` / `foodmythbuster_bq`) so incremental cursors stay isolated — switching `FOODMYTHBUSTER_TARGET` never leaks state across destinations.
-
-> If only one backend is configured in `.bruin.yml`, prefer `make ingest && make transform` over `make build` — the sibling DuckDB staging asset will otherwise try to execute and error out on a missing connection.
 
 ### Phase 4 — Launch the dashboard
 
