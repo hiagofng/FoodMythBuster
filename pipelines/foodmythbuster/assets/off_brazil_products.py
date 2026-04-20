@@ -25,6 +25,9 @@ DUCKDB_PATH = os.getenv("DUCKDB_PATH", "data/foodmythbuster.duckdb")
 # duckdb (default) for local dev · bigquery for cloud
 TARGET = os.getenv("FOODMYTHBUSTER_TARGET", "duckdb").lower()
 
+# brazil (default) filters GS1 prefixes 789/790 · global loads every country
+SCOPE = os.getenv("FOODMYTHBUSTER_SCOPE", "brazil").lower()
+
 COLUMNS = [
     "code", "product_name", "nova_group", "nutriscore_grade",
     "labels_tags", "brands", "categories", "categories_tags",
@@ -78,6 +81,14 @@ def off_brazil_products(
 
     cutoff = last_modified.last_value
     log.info("Incremental cutoff: last_modified_t > %d", cutoff)
+    log.info("Scope: %s", SCOPE)
+
+    # GS1 prefixes 789/790 = barcodes issued in Brazil
+    scope_filter = (
+        "(code LIKE '789%' OR code LIKE '790%') AND"
+        if SCOPE == "brazil"
+        else ""
+    )
 
     con = duckdb.connect()
     result = con.execute(f"""
@@ -97,9 +108,8 @@ def off_brazil_products(
             created_t,
             last_modified_t
         FROM read_parquet('{PARQUET_LOCAL}')
-        -- GS1 prefixes 789/790 = barcodes issued in Brazil
-        WHERE (code LIKE '789%' OR code LIKE '790%')
-          AND nova_group IS NOT NULL
+        WHERE {scope_filter}
+              nova_group IS NOT NULL
           AND len(product_name) > 0
           AND last_modified_t > {cutoff}
     """)
@@ -127,13 +137,14 @@ def _build_pipeline():
         )
         os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] = f"gs://{os.environ['GCS_BUCKET']}"
         return dlt.pipeline(
-            pipeline_name="foodmythbuster_bq",
+            pipeline_name=f"foodmythbuster_bq_{SCOPE}",
             destination="bigquery",
             staging="filesystem",
             dataset_name=os.getenv("BQ_DATASET", "foodmythbuster"),
         )
+    
     return dlt.pipeline(
-        pipeline_name="foodmythbuster_duckdb",
+        pipeline_name=f"foodmythbuster_duckdb_{SCOPE}",
         destination=dlt.destinations.duckdb(DUCKDB_PATH),
         dataset_name="raw",
     )
@@ -142,7 +153,7 @@ def _build_pipeline():
 def main():
     log.info("Ingestion target: %s", TARGET)
     pipeline = _build_pipeline()
-    load_info = pipeline.run(off_brazil_products())
+    load_info = pipeline.run(off_brazil_products(), loader_file_format="parquet")
     log.info("dlt load complete: %s", load_info)
 
 

@@ -25,7 +25,7 @@ In the Brazil slice of Open Food Facts, **34.3% of products carrying a front-of-
 | 5 | Which additive families dominate — and what does research say? | Top additives + links |
 | 6 | Is the additive gap widening over time? | Temporal trend |
 
-> **Scope note.** Only Brazilian products with `nova_group` classified are loaded (GS1 prefixes `789*` / `790*`). Re-pointing at a different country requires swapping that filter; every downstream model and tile stays the same.
+> **Scope note.** The default scope is Brazilian products with `nova_group` classified (GS1 prefixes `789*` / `790*`). Set `FOODMYTHBUSTER_SCOPE=global` to ingest every country instead — or run `make dev-global` for the local one-shot. Every downstream model and tile stays the same; only the ingest WHERE clause flips.
 
 *NOVA classification: Prof. Carlos Monteiro, University of São Paulo.*
 
@@ -61,6 +61,8 @@ A Streamlit + Plotly app (`dashboard/app.py`) is retained as a local alternative
 
 **→ [Open the live Looker Studio dashboard](https://datastudio.google.com/reporting/73c0c594-b5c9-44df-999d-faa7573c5e3a)**
 
+### Brazil scope
+
 ![FoodMythBuster dashboard](docs/images/FoodMythBuster-1.png)
 ![FoodMythBuster dashboard](docs/images/FoodMythBuster-2.png)
 ![FoodMythBuster dashboard](docs/images/FoodMythBuster-3.png)
@@ -69,6 +71,10 @@ A Streamlit + Plotly app (`dashboard/app.py`) is retained as a local alternative
 ![FoodMythBuster dashboard](docs/images/FoodMythBuster-6.png)
 
 > **About the 2023 marker on Tile 6 (temporal trend).** The dashed vertical line marks the rollout of ANVISA's **RDC 429/2020** — Brazil's front-of-pack warning-label rule that mandates black "magnifying-glass" icons on packages high in added sugar, saturated fat, or sodium (in force from October 2022, with manufacturers reformulating through 2023). It anchors the chart as a before/after reference: did the additive gap between deceptive (health-claim-bearing) NOVA 4 products and other NOVA 4 products shift once mandatory warnings hit shelves?
+
+### Global scope
+
+[Global dashboard snapshot (PDF)](docs/images/Global_Streamlit_FoodFacts_Nova4.pdf)
 
 Tile-by-tile spec: [docs/looker-studio-guide.md](docs/looker-studio-guide.md).
 Underlying queries: [docs/looker-studio-queries/](docs/looker-studio-queries/).
@@ -100,15 +106,17 @@ cp .bruin.yml.example .bruin.yml
 gcloud auth login
 gcloud auth application-default login
 
-make infra         # provision GCS + BigQuery + SA + IAM
-make build         # ingest → dbt build (staging + mart + tests)
-make dashboard     # Streamlit against BigQuery (Looker is browser-only)
+make infra                                # provision GCS + BigQuery + SA + IAM
+make build                                # ingest → dbt build (Brazil scope, default)
+# FOODMYTHBUSTER_SCOPE=global make build  # same, but ingest every country
+make dashboard                            # Streamlit against BigQuery (Looker is browser-only)
 ```
 
 Local-only run against DuckDB (no cloud account needed):
 
 ```bash
-make dev
+make dev            # Brazil scope (default)
+make dev-global     # every country — equivalent to FOODMYTHBUSTER_SCOPE=global make dev
 ```
 
 `make help` lists every target.
@@ -244,7 +252,7 @@ Data lands in `data/foodmythbuster.duckdb` (schemas `raw` and `staging`) and the
 > - `foodmythbuster._dlt_loads`, `_dlt_pipeline_state`, `_dlt_version` — dlt load history & incremental cursor
 > - `foodmythbuster_staging.*` — dlt's temporary merge-staging dataset; not a transformation layer
 >
-> Ingestion uses backend-specific pipeline names (`foodmythbuster_duckdb` / `foodmythbuster_bq`) so incremental cursors stay isolated — switching `FOODMYTHBUSTER_TARGET` never leaks state across destinations.
+> Ingestion uses backend- and scope-specific pipeline names (`foodmythbuster_duckdb_{brazil|global}` / `foodmythbuster_bq_{brazil|global}`) so incremental cursors stay isolated — switching either `FOODMYTHBUSTER_TARGET` or `FOODMYTHBUSTER_SCOPE` never leaks state across destinations or scopes.
 
 ### Phase 4 — Launch the dashboard
 

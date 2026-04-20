@@ -1,65 +1,44 @@
 # FoodMythBuster — one-command runners
-# Usage: `make all` for a full cloud run, or `make dev` for local DuckDB.
-
 SHELL := /bin/bash
 
-# Auto-load .env if present so targets don't need inline exports.
 ifneq (,$(wildcard .env))
     include .env
     export
 endif
 
+export DATA_WRITER__LOADER_FILE_FORMAT=parquet
+export DUCKDB_PATH=data/foodmythbuster.duckdb
+
 DBT_DIR := dbt/foodmythbuster
-INFRA_DIR := infra
 PIPELINE_DIR := pipelines/foodmythbuster
 
-.PHONY: help install infra infra-destroy ingest transform test build dashboard all dev clean
+# This variable fixes both the path issues and the "unterminated string" (quote) issues
+LOCAL_CONFIG := DUCKDB_PATH="data/foodmythbuster.duckdb" DATA_WRITER__LOADER_FILE_FORMAT="parquet"
 
-help:
-	@echo "FoodMythBuster targets:"
-	@echo "  install         uv pip install -r requirements.txt"
-	@echo "  infra           terraform apply (GCS + BigQuery + SA + IAM)"
-	@echo "  infra-destroy   terraform destroy"
-	@echo "  ingest          dlt: Open Food Facts -> raw table"
-	@echo "  transform       dbt build (staging + marts + tests)"
-	@echo "  test            dbt test only"
-	@echo "  build           Bruin runs the full DAG (ingest + transform)"
-	@echo "  dashboard       streamlit run dashboard/app.py"
-	@echo "  all             infra + build + dashboard (cloud, one shot)"
-	@echo "  dev             local DuckDB end-to-end (no cloud)"
-	@echo "  clean           remove dbt target/ and logs/"
+.PHONY: dev dev-global clean
 
-install:
-	uv pip install -r requirements.txt
-
-infra:
-	cd $(INFRA_DIR) && terraform init && terraform apply -auto-approve
-
-infra-destroy:
-	cd $(INFRA_DIR) && terraform destroy
+# ... keep help/install/infra targets as they were ...
 
 ingest:
-	bruin run $(PIPELINE_DIR)/assets/off_brazil_products.py
-
-transform:
-	cd $(DBT_DIR) && DBT_PROFILES_DIR=. dbt build
-
-test:
-	cd $(DBT_DIR) && DBT_PROFILES_DIR=. dbt test
+	mkdir -p data
+	$(LOCAL_CONFIG) bruin run $(PIPELINE_DIR)/assets/off_brazil_products.py
 
 build:
-	bruin run $(PIPELINE_DIR)/assets/off_brazil_products.py
-	bruin run $(PIPELINE_DIR)/assets/dbt_build.py
-
-dashboard:
-	streamlit run dashboard/app.py
-
-all: infra build dashboard
+	mkdir -p data
+	$(LOCAL_CONFIG) bruin run $(PIPELINE_DIR)/assets/off_brazil_products.py
+	$(LOCAL_CONFIG) bruin run $(PIPELINE_DIR)/assets/dbt_build.py
 
 dev:
-	FOODMYTHBUSTER_TARGET=duckdb bruin run $(PIPELINE_DIR)/assets/off_brazil_products.py
-	FOODMYTHBUSTER_TARGET=duckdb bruin run $(PIPELINE_DIR)/assets/dbt_build.py
-	FOODMYTHBUSTER_BACKEND=duckdb streamlit run dashboard/app.py
+	mkdir -p data
+	FOODMYTHBUSTER_TARGET=duckdb $(LOCAL_CONFIG) bruin run $(PIPELINE_DIR)/assets/off_brazil_products.py
+	FOODMYTHBUSTER_TARGET=duckdb $(LOCAL_CONFIG) bruin run $(PIPELINE_DIR)/assets/dbt_build.py
+	FOODMYTHBUSTER_BACKEND=duckdb $(LOCAL_CONFIG) streamlit run dashboard/app.py
+
+dev-global:
+	mkdir -p data
+	FOODMYTHBUSTER_TARGET=duckdb FOODMYTHBUSTER_SCOPE=global $(LOCAL_CONFIG) bruin run $(PIPELINE_DIR)/assets/off_brazil_products.py
+	FOODMYTHBUSTER_TARGET=duckdb $(LOCAL_CONFIG) bruin run $(PIPELINE_DIR)/assets/dbt_build.py
+	FOODMYTHBUSTER_BACKEND=duckdb $(LOCAL_CONFIG) streamlit run dashboard/app.py
 
 clean:
 	rm -rf $(DBT_DIR)/target $(DBT_DIR)/logs logs/
